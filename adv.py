@@ -25,9 +25,65 @@ world.print_rooms()
 
 player = Player(world.starting_room)
 
+def room_starting_value(visited, room):
+    num_possible_exits = room.get_exits()
+
+    visited[room.id] = {}
+
+    for possible in num_possible_exits:
+        visited[room.id][possible] = "?"
+
+def num_remaining_paths(room):
+    num_unexplored_exits = 0
+
+    for direction in room:
+        if room[direction] == "?":
+            num_unexplored_exits += 1
+
+    return num_unexplored_exits
+
+inverse_directions = {
+    "e": "w",
+    "w": "e",
+    "s": "n",
+    "n": "s"
+}
+
+
+
+def do_traversal(maze, player):
+    rooms_visited = {}
+    directions_reversed = []
+    directions_result = []
+    room_starting_value(rooms_visited, player.current_room)
+
+    while len(rooms_visited) < len(room_graph):
+        if num_remaining_paths(rooms_visited[player.current_room.id]) > 0:
+            for move in player.current_room.get_exits():
+                if rooms_visited[player.current_room.id][move] == "?":
+                    prev_room_id = player.current_room.id
+                    backtrack_move = inverse_directions[move]
+                    player.travel(move)
+                    directions_result.append(move)
+                    directions_reversed.append(backtrack_move)
+                    rooms_visited[prev_room_id][move] = player.current_room.id
+
+                    if player.current_room.id not in rooms_visited:
+                        room_starting_value(
+                            rooms_visited, player.current_room)
+                    rooms_visited[player.current_room.id][backtrack_move] = prev_room_id
+                    break
+
+        else:
+            backtrack_move = directions_reversed.pop()
+            player.travel(backtrack_move)
+            directions_result.append(backtrack_move)
+
+    return directions_result
+
 # Fill this out with directions to walk
 # traversal_path = ['n', 'n']
-traversal_path = []
+traversal_path = do_traversal(world, player)
 
 
 
